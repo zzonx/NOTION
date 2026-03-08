@@ -67,37 +67,54 @@
       const apiKey = "YOUR_FRED_API_KEY";
 
       async function loadSeries(seriesId) {
-        const url = `https://api.codetabs.com/v1/proxy?quest=https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+        const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
 
-        const res = await fetch(url);
-        const json = await res.json();
+        const proxies = [
+          "https://api.codetabs.com/v1/proxy?quest=",
+          "https://api.allorigins.win/raw?url=",
+          "https://thingproxy.freeboard.io/fetch/"
+        ];
 
-        const obs = json.observations.filter((d) => d.value != ".");
+        let json;
+        for (const proxy of proxies) {
+          try {
+            const res = await fetch(proxy + encodeURIComponent(fredUrl));
+            const text = await res.text();
+            if (text.startsWith("<")) continue; // HTML이면 다음 proxy 시도
+            json = JSON.parse(text);
+            break;
+          } catch (e) {
+            console.warn("Proxy failed, trying next:", proxy);
+          }
+        }
 
-        const dates = obs.map((d) => d.date);
-        const values = obs.map((d) => parseFloat(d.value));
+        if (!json) {
+          console.error(seriesId, "All proxies failed");
+          document.getElementById("val_" + seriesId).innerText = "Data unavailable";
+          return;
+        }
 
-        const latest = values[values.length - 1];
+        const obs = json.observations.filter(d => d.value != ".");
+        const dates = obs.map(d => d.date);
+        const values = obs.map(d => parseFloat(d.value));
+        const latest = values[values.length - 1].toFixed(2);
 
-        document.getElementById("val_" + seriesId).innerText =
-          "Latest: " + latest;
+        document.getElementById("val_" + seriesId).innerText = "Latest: " + latest;
 
         new Chart(document.getElementById("chart_" + seriesId), {
           type: "line",
           data: {
             labels: dates,
-            datasets: [
-              {
-                data: values,
-                borderWidth: 2,
-                pointRadius: 0,
-              },
-            ],
+            datasets: [{
+              data: values,
+              borderWidth: 2,
+              pointRadius: 0
+            }]
           },
           options: {
             plugins: { legend: { display: false } },
-            scales: { x: { display: false } },
-          },
+            scales: { x: { display: false } }
+          }
         });
       }
 
@@ -106,5 +123,3 @@
     </script>
   </body>
 </html>
-
-
