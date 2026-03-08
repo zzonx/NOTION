@@ -116,27 +116,12 @@ const proxyUrl =
 
 const res = await fetch(proxyUrl)
 
-const text = await res.text()
-
-// XML 오류 방지
-if(text.startsWith("<")){
-throw new Error("XML returned instead of JSON")
-}
-
-const json = JSON.parse(text)
-
-if(!json.observations){
-throw new Error("No observations")
-}
-
+const json = await res.json()
+  
 const obs = json.observations.filter(d => d.value !== ".")
 
 const dates = obs.map(d => d.date)
 const values = obs.map(d => parseFloat(d.value))
-
-if(values.length === 0){
-throw new Error("Empty data")
-}
 
 const latest = values[values.length-1].toFixed(2)
 
@@ -194,3 +179,4 @@ setTimeout(()=>loadSeries(id), i*500)
 
 </body>
 </html>
+
