@@ -126,9 +126,11 @@ try{
 const fredUrl =
 `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`
 
+/*
 const proxyUrl =
 `https://api.codetabs.com/v1/proxy?quest=${fredUrl}`
-
+*/
+const proxyUrl = `https://githubproxy.cc/${fredUrl}`;
 const res = await fetch(proxyUrl)
 
 const json = await res.json()
@@ -194,5 +196,6 @@ setTimeout(()=>loadSeries(id), i*500)
 
 </body>
 </html>
+
 
 
