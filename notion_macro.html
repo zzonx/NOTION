@@ -100,83 +100,90 @@ margin-bottom:10px;
 
 </div>
 
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-       <!-- Back 버튼 -->
-      <a href="notion_macro.html" style="text-decoration: none;">
-        <button style="display: flex; align-items: center; gap: 5px; padding: 8px 12px; font-size: 14px; cursor: pointer;">
-          ← Back
-        </button>
-      </a>
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+   <!-- Back 버튼 -->
+  <a href="notion_macro.html" style="text-decoration: none;">
+    <button style="display: flex; align-items: center; gap: 5px; padding: 8px 12px; font-size: 14px; cursor: pointer;">
+      ← Back
+    </button>
+  </a>
 
-      <!-- Go to Homepage 버튼 -->
-      <a href="index.html" style="text-decoration: none;">
-        <button style="display: flex; align-items: center; gap: 5px; padding: 8px 12px; font-size: 14px; cursor: pointer;">
-          🏠 Go to Homepage
-        </button>
-      </a>
-    </div>
+  <!-- Go to Homepage 버튼 -->
+  <a href="index.html" style="text-decoration: none;">
+    <button style="display: flex; align-items: center; gap: 5px; padding: 8px 12px; font-size: 14px; cursor: pointer;">
+      🏠 Go to Homepage
+    </button>
+  </a>
+</div>
+
 <script>
 
-const apiKey="8bb27c78dc55739611bd34574f183d9a"
+const apiKey="8bb27c78dc55739611bd34574f183d9a";
 
 async function loadSeries(seriesId){
+  try{
+    const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
 
-try{
+    // ✅ GitHub Pages용 fallback proxy
+    const proxies = [
+      "https://api.codetabs.com/v1/proxy?quest=",
+      "https://api.allorigins.win/raw?url=",
+      "https://thingproxy.freeboard.io/fetch/"
+    ];
 
-const fredUrl =
-`https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`
+    let json;
+    for(const proxy of proxies){
+      try{
+        const res = await fetch(proxy + encodeURIComponent(fredUrl));
+        const text = await res.text();
+        if(text.startsWith("<")) continue; // HTML이면 실패 → 다음 proxy
+        json = JSON.parse(text);
+        break;
+      }catch(e){
+        console.warn("Proxy failed, trying next:", proxy);
+      }
+    }
 
-/*
-const proxyUrl =
-`https://api.codetabs.com/v1/proxy?quest=${fredUrl}`
-*/
-const proxyUrl = `https://githubproxy.cc/${fredUrl}`;
-const res = await fetch(proxyUrl)
+    if(!json){
+      console.error(seriesId,"All proxies failed");
+      document.getElementById("val_"+seriesId).innerText = "Data unavailable";
+      return;
+    }
 
-const json = await res.json()
-  
-const obs = json.observations.filter(d => d.value !== ".")
+    const obs = json.observations.filter(d => d.value !== ".");
+    const dates = obs.map(d => d.date);
+    const values = obs.map(d => parseFloat(d.value));
+    const latest = values[values.length-1].toFixed(2);
 
-const dates = obs.map(d => d.date)
-const values = obs.map(d => parseFloat(d.value))
+    document.getElementById("val_"+seriesId).innerText = "Latest: "+latest;
 
-const latest = values[values.length-1].toFixed(2)
+    new Chart(
+      document.getElementById("chart_"+seriesId),
+      {
+        type:"line",
+        data:{
+          labels:dates,
+          datasets:[{
+            data:values,
+            borderWidth:2,
+            pointRadius:0
+          }]
+        },
+        options:{
+          responsive:true,
+          plugins:{legend:{display:false}},
+          scales:{x:{display:false}}
+        }
+      }
+    );
 
-document.getElementById("val_"+seriesId).innerText =
-"Latest: " + latest
-
-new Chart(
-document.getElementById("chart_"+seriesId),
-{
-type:"line",
-data:{
-labels:dates,
-datasets:[{
-data:values,
-borderWidth:2,
-pointRadius:0
-}]
-},
-options:{
-responsive:true,
-plugins:{legend:{display:false}},
-scales:{x:{display:false}}
+  }catch(e){
+    console.error(seriesId,e);
+    document.getElementById("val_"+seriesId).innerText = "Data unavailable";
+  }
 }
-}
-)
 
-}catch(e){
-
-console.error(seriesId,e)
-
-document.getElementById("val_"+seriesId).innerText =
-"Data unavailable"
-
-}
-
-}
-
-// API 동시 호출 방지
+// API 동시 호출 방지 (0.5초 간격)
 const seriesList = [
 "T10Y2Y",
 "BAMLH0A0HYM2",
@@ -186,16 +193,13 @@ const seriesList = [
 "VIXCLS",
 "CPIAUCSL",
 "DTWEXBGS"
-]
+];
 
 seriesList.forEach((id,i)=>{
-setTimeout(()=>loadSeries(id), i*500)
-})
+  setTimeout(()=>loadSeries(id), i*500);
+});
 
 </script>
 
 </body>
 </html>
-
-
-
