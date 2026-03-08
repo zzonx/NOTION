@@ -1,104 +1,132 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Macro Dashboard</title>
+<head>
+<meta charset="UTF-8">
+<title>Macro Dashboard</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style>
-      body {
-        font-family: Arial;
-        margin: 40px;
-        background: #fafafa;
-      }
+<style>
 
-      .chartbox {
-        background: white;
-        padding: 20px;
-        margin-bottom: 30px;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      }
+body{
+font-family:Arial;
+margin:40px;
+background:#f5f7fa;
+}
 
-      button {
-        padding: 10px 20px;
-        border: none;
-        background: #2d7ff9;
-        color: white;
-        border-radius: 6px;
-        cursor: pointer;
-      }
-    </style>
-  </head>
+h1{
+margin-bottom:30px;
+}
 
-  <body>
-    <h1>Macroeconomic Indicators</h1>
+.chartbox{
+background:white;
+padding:20px;
+margin-bottom:30px;
+border-radius:10px;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
 
-    <div class="chartbox">
-      <h3>10Y-2Y Treasury Spread</h3>
-      <div id="val_T10Y2Y">Loading...</div>
-      <canvas id="chart_T10Y2Y"></canvas>
-    </div>
+canvas{
+height:300px;
+}
 
-    <div class="chartbox">
-      <h3>High Yield Credit Spread</h3>
-      <div id="val_BAMLH0A0HYM2">Loading...</div>
-      <canvas id="chart_BAMLH0A0HYM2"></canvas>
-    </div>
+</style>
+</head>
 
-    <div class="chartbox">
-      <h3>Unemployment Rate</h3>
-      <div id="val_UNRATE">Loading...</div>
-      <canvas id="chart_UNRATE"></canvas>
-    </div>
+<body>
 
-    <a href="markets.html">
-      <button>Next → Markets</button>
-    </a>
+<h1>Macroeconomic Indicators</h1>
 
-    <script>
-      const apiKey = "8bb27c78dc55739611bd34574f183d9a";
+<div class="chartbox">
+<h3>Yield Curve (10Y-2Y)</h3>
+<div id="val_T10Y2Y">Loading...</div>
+<canvas id="chart_T10Y2Y"></canvas>
+</div>
 
-      async function loadSeries(seriesId) {
-        const url = `https://api.codetabs.com/v1/proxy?quest=https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+<div class="chartbox">
+<h3>High Yield Credit Spread</h3>
+<div id="val_BAMLH0A0HYM2">Loading...</div>
+<canvas id="chart_BAMLH0A0HYM2"></canvas>
+</div>
 
-        const res = await fetch(url);
-        const json = await res.json();
+<div class="chartbox">
+<h3>Unemployment Rate</h3>
+<div id="val_UNRATE">Loading...</div>
+<canvas id="chart_UNRATE"></canvas>
+</div>
 
-        const obs = json.observations.filter((d) => d.value != ".");
+<div class="chartbox">
+<h3>10Y Treasury Yield</h3>
+<div id="val_DGS10">Loading...</div>
+<canvas id="chart_DGS10"></canvas>
+</div>
 
-        const dates = obs.map((d) => d.date);
-        const values = obs.map((d) => parseFloat(d.value));
+<script>
 
-        const latest = values[values.length - 1];
+const apiKey="8bb27c78dc55739611bd34574f183d9a"
 
-        document.getElementById("val_" + seriesId).innerText =
-          "Latest: " + latest;
+async function loadSeries(seriesId){
 
-        new Chart(document.getElementById("chart_" + seriesId), {
-          type: "line",
-          data: {
-            labels: dates,
-            datasets: [
-              {
-                data: values,
-                borderWidth: 2,
-                pointRadius: 0,
-              },
-            ],
-          },
-          options: {
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false } },
-          },
-        });
-      }
+try{
 
-      loadSeries("T10Y2Y");
-      loadSeries("BAMLH0A0HYM2");
-      loadSeries("UNRATE");
-    </script>
-  </body>
+const url=`https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`
+
+const res=await fetch(url)
+
+const json=await res.json()
+
+const obs=json.observations.filter(d=>d.value!=".")
+
+const dates=obs.map(d=>d.date)
+const values=obs.map(d=>parseFloat(d.value))
+
+const latest=values[values.length-1]
+
+document.getElementById("val_"+seriesId).innerText=
+"Latest: "+latest
+
+new Chart(
+document.getElementById("chart_"+seriesId),
+{
+type:"line",
+data:{
+labels:dates,
+datasets:[
+{
+data:values,
+borderWidth:2,
+pointRadius:0
+}
+]
+},
+options:{
+responsive:true,
+plugins:{
+legend:{display:false}
+},
+scales:{
+x:{display:false}
+}
+}
+}
+)
+
+}catch(e){
+
+console.log(e)
+
+document.getElementById("val_"+seriesId).innerText="Data error"
+
+}
+
+}
+
+loadSeries("T10Y2Y")
+loadSeries("BAMLH0A0HYM2")
+loadSeries("UNRATE")
+loadSeries("DGS10")
+
+</script>
+
+</body>
 </html>
-
