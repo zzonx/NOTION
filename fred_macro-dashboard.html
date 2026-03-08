@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Macro Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        font-family: Arial;
+        background: #0f1116;
+        color: white;
+        margin: 20px;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .card {
+        background: #1a1d25;
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .value {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      canvas {
+        max-height: 300px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Macro Dashboard</h1>
+
+    <div class="container">
+      <div class="card">
+        <h2>10Y - 2Y Treasury Spread</h2>
+        <div class="value" id="val_T10Y2Y"></div>
+        <canvas id="chart_T10Y2Y"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>High Yield OAS</h2>
+        <div class="value" id="val_BAMLH0A0HYM2"></div>
+        <canvas id="chart_BAMLH0A0HYM2"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>Unemployment Rate</h2>
+        <div class="value" id="val_UNRATE"></div>
+        <canvas id="chart_UNRATE"></canvas>
+      </div>
+    </div>
+
+    <script>
+      const apiKey = "8bb27c78dc55739611bd34574f183d9a";
+
+      async function loadSeries(seriesId) {
+        const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const obs = data.observations.filter((d) => d.value !== ".");
+
+        const dates = obs.map((d) => d.date);
+        const values = obs.map((d) => parseFloat(d.value));
+
+        const latest = values[values.length - 1];
+
+        document.getElementById("val_" + seriesId).innerText =
+          "Latest: " + latest;
+
+        new Chart(document.getElementById("chart_" + seriesId), {
+          type: "line",
+          data: {
+            labels: dates,
+            datasets: [
+              {
+                label: seriesId,
+                data: values,
+                borderWidth: 2,
+                pointRadius: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+            },
+            scales: {
+              x: {
+                ticks: { display: false },
+              },
+            },
+          },
+        });
+      }
+
+      loadSeries("T10Y2Y");
+      loadSeries("BAMLH0A0HYM2");
+      loadSeries("UNRATE");
+    </script>
+  </body>
+</html>
