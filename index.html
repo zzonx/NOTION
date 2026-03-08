@@ -1,43 +1,45 @@
-async function loadSeries(seriesId){
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard</title>
 
-const fredUrl =
-`https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`
+    <style>
+      body {
+        font-family: Arial;
+        text-align: center;
+        background: #f4f6f8;
+        margin-top: 100px;
+      }
 
-const proxyUrl =
-`https://api.codetabs.com/v1/proxy?quest=${fredUrl}`
+      button {
+        padding: 15px 40px;
+        font-size: 18px;
+        margin: 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #2d7ff9;
+        color: white;
+      }
 
-const res = await fetch(proxyUrl)
+      button:hover {
+        background: #1a5fd0;
+      }
+    </style>
+  </head>
 
-const json = await res.json()
+  <body>
+    <h1>Economic Dashboard</h1>
 
-const obs = json.observations.filter(d => d.value !== ".")
+    <a href="macro.html">
+      <button>1. Macroeconomic Indicators</button>
+    </a>
 
-const dates = obs.map(d => d.date)
-const values = obs.map(d => parseFloat(d.value))
+    <br />
 
-const latest = values[values.length-1]
-
-document.getElementById("val_"+seriesId).innerText =
-"Latest: " + latest
-
-new Chart(
-document.getElementById("chart_"+seriesId),
-{
-type:"line",
-data:{
-labels:dates,
-datasets:[{
-data:values,
-borderWidth:2,
-pointRadius:0
-}]
-},
-options:{
-responsive:true,
-plugins:{legend:{display:false}},
-scales:{x:{display:false}}
-}
-}
-)
-
-}
+    <a href="markets.html">
+      <button>2. Market Indicators</button>
+    </a>
+  </body>
+</html>
