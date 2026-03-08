@@ -54,9 +54,10 @@
       async function loadSeries(seriesId) {
         const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
 
-        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${fredUrl}`;
+        //const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${fredUrl}`;
         //const proxyUrl = `https://cors-anywhere.herokuapp.com/${fredUrl}`;
-
+        const proxyUrl = `https://githubproxy.cc/${fredUrl}`;
+        
         const res = await fetch(proxyUrl);
         //test code
         const text = await res.text();
@@ -106,5 +107,6 @@
     </script>
   </body>
 </html>
+
 
 
