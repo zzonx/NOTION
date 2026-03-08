@@ -69,21 +69,22 @@ async function loadSeries(seriesId){
 
 try{
 
-const url=`https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`
+const url =
+`https://api.codetabs.com/v1/proxy?quest=https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`
 
-const res=await fetch(url)
+const res = await fetch(url)
 
-const json=await res.json()
+const json = await res.json()
 
-const obs=json.observations.filter(d=>d.value!=".")
+const obs = json.observations.filter(d => d.value !== ".")
 
-const dates=obs.map(d=>d.date)
-const values=obs.map(d=>parseFloat(d.value))
+const dates = obs.map(d => d.date)
+const values = obs.map(d => parseFloat(d.value))
 
-const latest=values[values.length-1]
+const latest = values[values.length-1]
 
-document.getElementById("val_"+seriesId).innerText=
-"Latest: "+latest
+document.getElementById("val_"+seriesId).innerText =
+"Latest: " + latest
 
 new Chart(
 document.getElementById("chart_"+seriesId),
@@ -91,22 +92,15 @@ document.getElementById("chart_"+seriesId),
 type:"line",
 data:{
 labels:dates,
-datasets:[
-{
+datasets:[{
 data:values,
 borderWidth:2,
 pointRadius:0
-}
-]
+}]
 },
 options:{
-responsive:true,
-plugins:{
-legend:{display:false}
-},
-scales:{
-x:{display:false}
-}
+plugins:{legend:{display:false}},
+scales:{x:{display:false}}
 }
 }
 )
@@ -120,7 +114,7 @@ document.getElementById("val_"+seriesId).innerText="Data error"
 }
 
 }
-
+  
 loadSeries("T10Y2Y")
 loadSeries("BAMLH0A0HYM2")
 loadSeries("UNRATE")
@@ -130,3 +124,4 @@ loadSeries("DGS10")
 
 </body>
 </html>
+
