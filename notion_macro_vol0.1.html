@@ -13,6 +13,21 @@
         background: #fafafa;
       }
 
+      .buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .buttons button {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+      }
+
       .chartbox {
         background: white;
         padding: 20px;
@@ -31,6 +46,17 @@
   <body>
     <h1>Macro Dashboard</h1>
 
+    <!-- 버튼 영역 -->
+    <div class="buttons">
+      <a href="macro.html" style="text-decoration:none;">
+        <button>← Back</button>
+      </a>
+      <a href="index.html" style="text-decoration:none;">
+        <button>🏠 Go to Homepage</button>
+      </a>
+    </div>
+
+    <!-- 차트 영역 -->
     <div class="chartbox">
       <h3>10Y-2Y Treasury Spread</h3>
       <div id="val_T10Y2Y">Loading...</div>
@@ -50,51 +76,91 @@
     </div>
 
     <script>
-        const apiKey = "8bb27c78dc55739611bd34574f183d9a";
-        async function loadSeries(seriesId) {
-          const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+      const apiKey = "8bb27c78dc55739611bd34574f183d9a";
+      const CACHE_TIME = 24 * 60 * 60 * 1000; // 24시간
 
-          const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${fredUrl}`;
+      async function loadSeries(seriesId) {
+        const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${fredUrl}`;
 
-          const res = await fetch(proxyUrl);
+        const cacheKey = "fredData_" + seriesId;
+        const cacheTimeKey = "fredDataTime_" + seriesId;
+        const now = Date.now();
 
-          const json = await res.json();
+        // 1. 브라우저 캐시 확인
+        const cachedData = localStorage.getItem(cacheKey);
+        const cachedTime = localStorage.getItem(cacheTimeKey);
 
-          const obsAll = json.observations.filter((d) => d.value !== ".");
-          const obs = obsAll.slice(-120);
-
-          const dates = obs.map((d) => d.date);
-          const values = obs.map((d) => parseFloat(d.value));
-          const latest = values[values.length - 1];
-
-          document.getElementById("val_" + seriesId).innerText =
-            "Latest: " + latest;
-
-          new Chart(document.getElementById("chart_" + seriesId), {
-            type: "line",
-            data: {
-              labels: dates,
-              datasets: [
-                {
-                  data: values,
-                  borderWidth: 2,
-                  pointRadius: 0,
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              plugins: { legend: { display: false } },
-              scales: { x: { display: false } },
-            },
-          });
+        if (cachedData && cachedTime && now - cachedTime < CACHE_TIME) {
+          const json = JSON.parse(cachedData);
+          renderChart(seriesId, json);
+          return;
         }
-        Promise.all([
+
+        try {
+          const res = await fetch(proxyUrl);
+          const text = await res.text();
+
+          // JSON 파싱
+          let json;
+          try {
+            json = JSON.parse(text);
+          } catch (e) {
+            console.error("JSON parsing fail:", e);
+            console.log("서버 응답:", text.slice(0, 500));
+            alert(`Series ${seriesId} 데이터 로딩 실패! 콘솔 확인`);
+            return;
+          }
+
+          // 캐시 저장
+          localStorage.setItem(cacheKey, JSON.stringify(json));
+          localStorage.setItem(cacheTimeKey, now);
+
+          renderChart(seriesId, json);
+
+        } catch (err) {
+          console.error("Fetch error:", err);
+          alert(`Series ${seriesId} 데이터 요청 실패!`);
+        }
+      }
+
+      function renderChart(seriesId, json) {
+        const obsAll = json.observations.filter(d => d.value !== ".");
+        const obs = obsAll.slice(-120); // 최근 120개만 사용
+
+        const dates = obs.map(d => d.date);
+        const values = obs.map(d => parseFloat(d.value));
+        const latest = values[values.length - 1];
+
+        document.getElementById("val_" + seriesId).innerText = "Latest: " + latest;
+
+        new Chart(document.getElementById("chart_" + seriesId), {
+          type: "line",
+          data: {
+            labels: dates,
+            datasets: [
+              {
+                data: values,
+                borderWidth: 2,
+                pointRadius: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            animation: { duration: 1000 }, // 애니메이션 유지
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false } },
+          },
+        });
+      }
+
+      // 모든 시리즈 로드
+      Promise.all([
         loadSeries("T10Y2Y"),
         loadSeries("BAMLH0A0HYM2"),
-        loadSeries("UNRATE"),
+        loadSeries("UNRATE")
       ]).then(() => console.log("All charts loaded"));
     </script>
   </body>
 </html>
-
