@@ -65,7 +65,8 @@
       const apiKey = "8bb27c78dc55739611bd34574f183d9a";
 
       async function loadSeries(seriesId) {
-       // const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+       /* const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+        */
         const url =`https://api.allorigins.win/raw?url=https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
         const response = await fetch(url);
         const data = await response.json();
@@ -113,4 +114,5 @@
     </script>
   </body>
 </html>
+
 
