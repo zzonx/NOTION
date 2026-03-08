@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Market Indicators</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        font-family: Arial;
+        margin: 40px;
+        background: #fafafa;
+      }
+
+      .chartbox {
+        background: white;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      button {
+        padding: 10px 20px;
+        border: none;
+        background: #2d7ff9;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Market Indicators</h1>
+
+    <div class="chartbox">
+      <h3>VIX</h3>
+      <div id="val_VIXCLS">Loading...</div>
+      <canvas id="chart_VIXCLS"></canvas>
+    </div>
+
+    <div class="chartbox">
+      <h3>10Y Treasury Yield</h3>
+      <div id="val_DGS10">Loading...</div>
+      <canvas id="chart_DGS10"></canvas>
+    </div>
+
+    <a href="macro.html">
+      <button>← Back</button>
+    </a>
+
+    <script>
+      const apiKey = "YOUR_FRED_API_KEY";
+
+      async function loadSeries(seriesId) {
+        const url = `https://api.codetabs.com/v1/proxy?quest=https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+
+        const res = await fetch(url);
+        const json = await res.json();
+
+        const obs = json.observations.filter((d) => d.value != ".");
+
+        const dates = obs.map((d) => d.date);
+        const values = obs.map((d) => parseFloat(d.value));
+
+        const latest = values[values.length - 1];
+
+        document.getElementById("val_" + seriesId).innerText =
+          "Latest: " + latest;
+
+        new Chart(document.getElementById("chart_" + seriesId), {
+          type: "line",
+          data: {
+            labels: dates,
+            datasets: [
+              {
+                data: values,
+                borderWidth: 2,
+                pointRadius: 0,
+              },
+            ],
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false } },
+          },
+        });
+      }
+
+      loadSeries("VIXCLS");
+      loadSeries("DGS10");
+    </script>
+  </body>
+</html>
