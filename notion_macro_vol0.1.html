@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Macro Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        font-family: Arial;
+        margin: 40px;
+        background: #fafafa;
+      }
+
+      .chartbox {
+        background: white;
+        padding: 20px;
+        margin-bottom: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      canvas {
+        width: 100%;
+        height: 300px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Macro Dashboard</h1>
+
+    <div class="chartbox">
+      <h3>10Y-2Y Treasury Spread</h3>
+      <div id="val_T10Y2Y">Loading...</div>
+      <canvas id="chart_T10Y2Y"></canvas>
+    </div>
+
+    <div class="chartbox">
+      <h3>High Yield Credit Spread</h3>
+      <div id="val_BAMLH0A0HYM2">Loading...</div>
+      <canvas id="chart_BAMLH0A0HYM2"></canvas>
+    </div>
+
+    <div class="chartbox">
+      <h3>US Unemployment Rate</h3>
+      <div id="val_UNRATE">Loading...</div>
+      <canvas id="chart_UNRATE"></canvas>
+    </div>
+
+    <script>
+        const apiKey = "8bb27c78dc55739611bd34574f183d9a";
+        async function loadSeries(seriesId) {
+          const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`;
+
+          const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${fredUrl}`;
+
+          const res = await fetch(proxyUrl);
+
+          const json = await res.json();
+
+          const obsAll = json.observations.filter((d) => d.value !== ".");
+          const obs = obsAll.slice(-120);
+
+          const dates = obs.map((d) => d.date);
+          const values = obs.map((d) => parseFloat(d.value));
+          const latest = values[values.length - 1];
+
+          document.getElementById("val_" + seriesId).innerText =
+            "Latest: " + latest;
+
+          new Chart(document.getElementById("chart_" + seriesId), {
+            type: "line",
+            data: {
+              labels: dates,
+              datasets: [
+                {
+                  data: values,
+                  borderWidth: 2,
+                  pointRadius: 0,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: { legend: { display: false } },
+              scales: { x: { display: false } },
+            },
+          });
+        }
+        Promise.all([
+        loadSeries("T10Y2Y");
+        loadSeries("BAMLH0A0HYM2");
+        loadSeries("UNRATE");
+      ]).then(() => console.log("All charts loaded"));
+    </script>
+  </body>
+</html>
