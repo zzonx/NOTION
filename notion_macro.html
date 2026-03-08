@@ -57,7 +57,7 @@ margin-bottom:10px;
 </div>
 
 <div class="chartbox">
-<h3>High Yield Credit Spread</h3>
+<h3>High Yield Spread</h3>
 <div class="value" id="val_BAMLH0A0HYM2">Loading...</div>
 <canvas id="chart_BAMLH0A0HYM2"></canvas>
 </div>
@@ -69,7 +69,7 @@ margin-bottom:10px;
 </div>
 
 <div class="chartbox">
-<h3>10Y Treasury Yield</h3>
+<h3>10Y Treasury</h3>
 <div class="value" id="val_DGS10">Loading...</div>
 <canvas id="chart_DGS10"></canvas>
 </div>
@@ -87,7 +87,7 @@ margin-bottom:10px;
 </div>
 
 <div class="chartbox">
-<h3>CPI (Inflation)</h3>
+<h3>CPI</h3>
 <div class="value" id="val_CPIAUCSL">Loading...</div>
 <canvas id="chart_CPIAUCSL"></canvas>
 </div>
@@ -106,12 +106,14 @@ const apiKey="8bb27c78dc55739611bd34574f183d9a"
 
 async function loadSeries(seriesId){
 
-try{
+const fredUrl =
+`https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`
 
-const url =
-`https://api.codetabs.com/v1/proxy?quest=https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`
+const proxyUrl =
+`https://api.codetabs.com/v1/proxy?quest=${fredUrl}`
 
-const res = await fetch(url)
+const res = await fetch(proxyUrl)
+
 const json = await res.json()
 
 const obs = json.observations.filter(d => d.value !== ".")
@@ -143,14 +145,6 @@ scales:{x:{display:false}}
 }
 }
 )
-
-}catch(e){
-
-console.log(e)
-
-document.getElementById("val_"+seriesId).innerText="Data error"
-
-}
 
 }
 
