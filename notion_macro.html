@@ -18,16 +18,27 @@ h1{
 margin-bottom:30px;
 }
 
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:25px;
+}
+
 .chartbox{
 background:white;
 padding:20px;
-margin-bottom:30px;
 border-radius:10px;
 box-shadow:0 2px 8px rgba(0,0,0,0.08);
 }
 
 canvas{
-height:300px;
+height:250px;
+}
+
+.value{
+font-size:18px;
+font-weight:bold;
+margin-bottom:10px;
 }
 
 </style>
@@ -35,30 +46,58 @@ height:300px;
 
 <body>
 
-<h1>Macroeconomic Indicators</h1>
+<h1>Macro Dashboard</h1>
+
+<div class="grid">
 
 <div class="chartbox">
 <h3>Yield Curve (10Y-2Y)</h3>
-<div id="val_T10Y2Y">Loading...</div>
+<div class="value" id="val_T10Y2Y">Loading...</div>
 <canvas id="chart_T10Y2Y"></canvas>
 </div>
 
 <div class="chartbox">
 <h3>High Yield Credit Spread</h3>
-<div id="val_BAMLH0A0HYM2">Loading...</div>
+<div class="value" id="val_BAMLH0A0HYM2">Loading...</div>
 <canvas id="chart_BAMLH0A0HYM2"></canvas>
 </div>
 
 <div class="chartbox">
 <h3>Unemployment Rate</h3>
-<div id="val_UNRATE">Loading...</div>
+<div class="value" id="val_UNRATE">Loading...</div>
 <canvas id="chart_UNRATE"></canvas>
 </div>
 
 <div class="chartbox">
 <h3>10Y Treasury Yield</h3>
-<div id="val_DGS10">Loading...</div>
+<div class="value" id="val_DGS10">Loading...</div>
 <canvas id="chart_DGS10"></canvas>
+</div>
+
+<div class="chartbox">
+<h3>S&P 500</h3>
+<div class="value" id="val_SP500">Loading...</div>
+<canvas id="chart_SP500"></canvas>
+</div>
+
+<div class="chartbox">
+<h3>VIX</h3>
+<div class="value" id="val_VIXCLS">Loading...</div>
+<canvas id="chart_VIXCLS"></canvas>
+</div>
+
+<div class="chartbox">
+<h3>CPI (Inflation)</h3>
+<div class="value" id="val_CPIAUCSL">Loading...</div>
+<canvas id="chart_CPIAUCSL"></canvas>
+</div>
+
+<div class="chartbox">
+<h3>Dollar Index</h3>
+<div class="value" id="val_DTWEXBGS">Loading...</div>
+<canvas id="chart_DTWEXBGS"></canvas>
+</div>
+
 </div>
 
 <script>
@@ -73,7 +112,6 @@ const url =
 `https://api.codetabs.com/v1/proxy?quest=https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json`
 
 const res = await fetch(url)
-
 const json = await res.json()
 
 const obs = json.observations.filter(d => d.value !== ".")
@@ -99,6 +137,7 @@ pointRadius:0
 }]
 },
 options:{
+responsive:true,
 plugins:{legend:{display:false}},
 scales:{x:{display:false}}
 }
@@ -114,14 +153,17 @@ document.getElementById("val_"+seriesId).innerText="Data error"
 }
 
 }
-  
+
 loadSeries("T10Y2Y")
 loadSeries("BAMLH0A0HYM2")
 loadSeries("UNRATE")
 loadSeries("DGS10")
+loadSeries("SP500")
+loadSeries("VIXCLS")
+loadSeries("CPIAUCSL")
+loadSeries("DTWEXBGS")
 
 </script>
 
 </body>
 </html>
-
