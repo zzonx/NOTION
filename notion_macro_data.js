@@ -7,25 +7,25 @@ const dashboardSummary = {
     icon: "🔭",
     title: "Market View",
     content:
-      "현재 시장은 연준의 금리 경로와 고용 지표의 균형을 탐색 중입니다. 실질 금리의 변동성에 유의해야 합니다.",
+      "Soft Landing vs mild recession <br> • 경제 성장 : 둔화시작 <br> • 금융 스트레스 : 아직 낮음 <br> • 금리 : 높은 수준 유지 <br> • 유동성 : 제한적 <br> • 시장 : 변동성 증가",
   },
   watchlist: {
     icon: "📊",
     title: "Data Watchlist",
     content:
-      "• CPI/PCE 하락 속도\n• 비농업 고용 및 실업률\n• 역레포 잔액 변화\n• 기업 가이던스",
+      "• UNRATE - 4.7~5.0%\n• ICSA - 300K \n• T10Y2Y - re-steepening\n• HighYieldSpread - 5% \n • NFCI - > 0 \n • WALCL - QT",
   },
   risk: {
     icon: "⚠️",
     title: "Risk Factors",
     content:
-      "• 수익률 곡선 역전 해소 노이즈\n• 지정학적 불안\n• 하이일드 스프레드 급등 여부",
+      "• 노동시장 악화\n• High Yield Spread widening\n• 지정학적 리스크 - oil, 중동 conflict\n• Housing Weakness - 금리 영향 ",
   },
   strategy: {
     icon: "🎯",
     title: "Strategy",
     content:
-      "우량 기술주 중심 포트폴리오 유지 및 방어적 채권 비중 조절을 통한 변동성 대응 전략.",
+      "1. Quaility Equity <br> • mega cap tech <br> • health care <br> • consumer staples <br> 2. Barbell <br> • equity 60 <br> • bond 30 <br> • gold 10",
   },
 };
 // MACRO INDICES DESCRIPTION
