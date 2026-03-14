@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="notion_macro_data.js"></script>
     <style>
+      /* CSS env. setting*/
       :root {
         --bg: #f1f5f9;
         --card-bg: #ffffff;
@@ -16,6 +17,7 @@
         --border: #e2e8f0;
         --accent-blue: #eff6ff;
       }
+      /* layout & font setting*/
       body {
         font-family: "Pretendard", sans-serif;
         background: var(--bg);
@@ -24,6 +26,7 @@
         padding: 20px;
         line-height: 1.6;
       }
+      /* header setting*/
       header {
         max-width: 1400px;
         margin: 0 auto 30px;
@@ -59,7 +62,7 @@
         white-space: pre-line;
         line-height: 1.7;
       }
-
+      /*Category setting*/
       .category-section {
         max-width: 1400px;
         margin: 0 auto 20px;
@@ -88,6 +91,7 @@
         display: grid;
       }
 
+      /*chart box setting*/
       .chartbox {
         background: #fff;
         border: 1px solid var(--border);
@@ -112,7 +116,7 @@
         display: flex;
         align-items: center;
       }
-
+      /*graph range box*/
       .range-tabs {
         display: flex;
         gap: 5px;
@@ -144,6 +148,7 @@
         position: relative;
         margin-bottom: 20px;
       }
+      /*Reloading box*/
       .retry-overlay {
         position: absolute;
         top: 0;
@@ -171,7 +176,7 @@
       .retry-overlay:hover .retry-svg {
         transform: rotate(180deg);
       }
-
+      /*index description*/
       .info-list {
         display: flex;
         flex-direction: column;
@@ -209,9 +214,9 @@
   </head>
   <body>
     <header>
-      <h1>Macro Economic Terminal</h1>
+      <h1>Macro Economic Indices</h1>
       <p style="color: var(--secondary-text); margin: 5px 0 0 0">
-        FRED Comprehensive Macro Analysis Dashboard
+        FRED base Macro Analysis Dashboard
       </p>
     </header>
 
@@ -219,9 +224,10 @@
     <div id="dashboard-container"></div>
 
     <script>
-      // 내부 상태 관리 변수
-      let masterData = {};
-      let chartInstances = {};
+      let masterData = {}; //FRED data
+      let chartInstances = {}; //indices description
+
+      /*category setting*/
       const themes = {
         growth: "1. GROWTH (경기)",
         stress: "2. FINANCIAL STRESS (금융 스트레스)",
@@ -229,7 +235,6 @@
         liquidity: "4. LIQUIDITY (유동성)",
         market: "5. MARKET INDEX (시장)",
       };
-      /* themes Colors */
       const categoryColors = {
         growth: { border: "#2563eb", bg: "rgba(37, 99, 235, 0.05)" }, // 파랑 (경기)
         stress: { border: "#dc2626", bg: "rgba(220, 38, 38, 0.05)" }, // 빨강 (스트레스)
@@ -239,7 +244,7 @@
       };
 
       function initDashboard() {
-        // 1. 상단 요약 카드 생성
+        // 1. Top summary box
         const topContainer = document.getElementById("top-summary-container");
         if (typeof dashboardSummary !== "undefined") {
           Object.keys(dashboardSummary).forEach((key) => {
@@ -252,7 +257,7 @@
           });
         }
 
-        // 2. 카테고리 및 지표 박스 생성
+        // 2. Category
         const container = document.getElementById("dashboard-container");
         Object.keys(themes).forEach((group) => {
           const theme = categoryColors[group] || categoryColors.growth;
@@ -268,6 +273,7 @@
           </div>`;
         });
 
+        // 3. chart box
         Object.keys(seriesInfo).forEach((id) => {
           const info = seriesInfo[id];
           const grid = document.getElementById(`grid-${info.group}`);
@@ -298,36 +304,9 @@
         });
       }
 
+      // UI control
       function toggleSection(header) {
         header.nextElementSibling.classList.toggle("active");
-      }
-
-      async function loadSeries(id) {
-        const valElement = document.getElementById("val_" + id);
-        const retryOverlay = document.getElementById("retry_" + id);
-        retryOverlay.style.display = "none";
-        valElement.innerText = "Loading...";
-
-        // 🟢 JS 파일에 정의된 apiKey를 사용합니다.
-        const url = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${apiKey}&file_type=json`)}`;
-
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          const json = JSON.parse(data.contents);
-          const obs = json.observations
-            .filter((o) => o.value !== ".")
-            .map((o) => ({ date: o.date, value: parseFloat(o.value) }));
-
-          masterData[id] = obs;
-          createRangeButtons(id);
-          updateChartRange(id, "MAX");
-        } catch (e) {
-          valElement.innerText = "Error";
-          retryOverlay.style.display = "flex";
-
-          applyTheme(id);
-        }
       }
 
       function createRangeButtons(id) {
@@ -372,6 +351,7 @@
         }
         renderChart(id, filtered);
       }
+
       function applyTheme(id) {
         const info = seriesInfo[id];
         const theme = categoryColors[info.group] || categoryColors.growth;
@@ -398,6 +378,37 @@
           if (text) text.style.color = theme.border;
         }
       }
+
+      // API Load function
+      async function loadSeries(id) {
+        const valElement = document.getElementById("val_" + id);
+        const retryOverlay = document.getElementById("retry_" + id);
+        retryOverlay.style.display = "none";
+        valElement.innerText = "Loading...";
+
+        // 🟢 JS 파일에 정의된 apiKey를 사용합니다.
+        const url = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${apiKey}&file_type=json`)}`;
+
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          const json = JSON.parse(data.contents);
+          const obs = json.observations
+            .filter((o) => o.value !== ".")
+            .map((o) => ({ date: o.date, value: parseFloat(o.value) }));
+
+          masterData[id] = obs;
+          createRangeButtons(id);
+          updateChartRange(id, "MAX");
+        } catch (e) {
+          valElement.innerText = "Error";
+          retryOverlay.style.display = "flex";
+
+          applyTheme(id);
+        }
+      }
+
+      // Chart Rendering..
       function renderChart(id, data) {
         applyTheme(id);
         const info = seriesInfo[id];
@@ -475,6 +486,8 @@
           },
         });
       }
+
+      // App start..
       window.onload = () => {
         initDashboard();
         Object.keys(seriesInfo).forEach((id, i) =>
