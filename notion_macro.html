@@ -3,8 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Macro Economic Dashboard (Premium Summary)</title>
+    <title>Macro Economic Terminal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="notion_macro_data.js"></script>
     <style>
       :root {
         --bg: #f1f5f9;
@@ -15,12 +16,8 @@
         --border: #e2e8f0;
         --accent-blue: #eff6ff;
       }
-
       body {
-        font-family:
-          "Pretendard",
-          -apple-system,
-          sans-serif;
+        font-family: "Pretendard", sans-serif;
         background: var(--bg);
         color: var(--text);
         margin: 0;
@@ -33,8 +30,7 @@
         border-bottom: 2px solid var(--primary);
         padding-bottom: 10px;
       }
-
-      /* --- 최상단 고정 서머리 스타일 --- */
+      /*TOP SUMMARY STYLE*/
       .top-summary {
         max-width: 1400px;
         margin: 0 auto 30px;
@@ -82,12 +78,11 @@
         font-weight: 700;
         border-bottom: 1px solid var(--border);
       }
-
       .category-content {
         display: none;
         padding: 25px;
         gap: 25px;
-        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
       }
       .category-content.active {
         display: grid;
@@ -98,6 +93,7 @@
         border: 1px solid var(--border);
         padding: 20px;
         border-radius: 12px;
+        position: relative;
         display: flex;
         flex-direction: column;
         transition: transform 0.2s;
@@ -107,32 +103,80 @@
         border-color: var(--primary);
       }
       .chartbox h3 {
-        margin: 0 0 5px 0;
-        font-size: 1rem;
+        margin: 0 0 10px 0;
+        font-size: 1.1rem;
         color: var(--primary);
-        min-height: 2.8rem;
-        display: flex;
-        align-items: center;
         border-bottom: 1px solid #f1f5f9;
         padding-bottom: 8px;
+        min-height: 2.5rem;
+        display: flex;
+        align-items: center;
+      }
+
+      .range-tabs {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 15px;
+      }
+      .range-btn {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--secondary-text);
+      }
+      .range-btn.active {
+        background: var(--primary);
+        color: #fff;
+        font-weight: bold;
       }
 
       .value {
         font-size: 1.8rem;
         font-weight: 800;
-        margin: 15px 0;
+        margin-bottom: 15px;
         color: #1e293b;
       }
       .canvas-container {
-        height: 180px;
-        margin-bottom: 20px;
+        height: 220px;
         position: relative;
+        margin-bottom: 20px;
+      }
+      .retry-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.85);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        cursor: pointer;
+        pointer-events: all;
+      }
+      .retry-svg {
+        width: 60px;
+        height: 60px;
+        fill: none;
+        stroke: var(--primary);
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: transform 0.4s ease;
+      }
+      .retry-overlay:hover .retry-svg {
+        transform: rotate(180deg);
       }
 
       .info-list {
         display: flex;
         flex-direction: column;
         gap: 10px;
+        margin-top: auto;
       }
       .info-item {
         padding: 10px 12px;
@@ -140,9 +184,9 @@
         background: #f8fafc;
         border-left: 3px solid #cbd5e1;
       }
-      .info-item:last-child {
-        background: var(--accent-blue);
-        border-left-color: var(--primary);
+      .info-item.key-insight {
+        background: #f8fafc;
+        border-left: 3px solid #cbd5e1;
       }
       .info-label {
         font-size: 0.7rem;
@@ -159,195 +203,25 @@
         display: block;
       }
       .insight-highlight {
-        color: #1d4ed8;
         font-weight: 700;
       }
     </style>
   </head>
   <body>
     <header>
-      <h1>Macro Economic Dashboard</h1>
+      <h1>Macro Economic Terminal</h1>
       <p style="color: var(--secondary-text); margin: 5px 0 0 0">
-        FRED Comprehensive Macro Terminal
+        FRED Comprehensive Macro Analysis Dashboard
       </p>
     </header>
 
-    <div class="top-summary">
-      <div class="summary-card">
-        <h4>🔭 Current Market View</h4>
-        <div class="summary-content">
-          현재 시장은 연준의 금리 경로와 고용 지표의 균형을 탐색 중입니다.
-          전반적인 유동성은 안정적이나 실질 금리의 변동성에 유의해야 합니다.
-        </div>
-      </div>
-      <div class="summary-card">
-        <h4>⚠️ Risk Factors</h4>
-        <div class="summary-content">
-          • 수익률 곡선 역전 해소 과정의 노이즈 • 지정학적 불안에 따른 에너지
-          가격 반등 • 하이일드 스프레드 급등 여부 모니터링
-        </div>
-      </div>
-      <div class="summary-card">
-        <h4>🎯 Investment Strategy</h4>
-        <div class="summary-content">
-          우량 기술주 중심의 코어 포트폴리오를 유지하되, 방어적 성격의 채권
-          비중을 조절하며 변동성에 대응하는 전략이 유효합니다.
-        </div>
-      </div>
-      <div class="summary-card">
-        <h4>📊 Data Watchlist</h4>
-        <div class="summary-content">
-          • CPI/PCE 인플레이션 하락 속도 • 비농업 고용 지수 및 실업률 추이 •
-          역레포(RRP) 잔액 및 유동성 변화 • 실적 시즌 기업들의 가이던스 변화
-        </div>
-      </div>
-    </div>
-
+    <div id="top-summary-container" class="top-summary"></div>
     <div id="dashboard-container"></div>
 
     <script>
-      const apiKey = "8bb27c78dc55739611bd34574f183d9a";
+      // 내부 상태 관리 변수
       let masterData = {};
-
-      const seriesInfo = {
-        // [지표 데이터 동일]
-        UNRATE: {
-          group: "growth",
-          name: "Unemployment Rate",
-          definition: "Unemployed / Labor Force",
-          interpretation:
-            "• Below ~4%  : Tight labor market <br>• Rising trend : Economic slowdown risk <br> • +0.5% from cycle low : Recession signal (Sahm Rule)",
-          marketImpact:
-            "Rising unemployment <br> → weaker household income <br> → slower consumer spending <br> → pressure on corporate earnings and equities",
-          keyInsight:
-            "Equity markets usually decline before unemployment rises, making it a lagging indicator for stocks.",
-        },
-        ICSA: {
-          group: "growth",
-          name: "Initial Jobless Claims",
-          definition:
-            "Weekly number of people filing for unemployment benefits for the first time, reflecting the pace of layoffs.",
-          interpretation:
-            "• Below ~200k : Strong labor market <br> • 200k–250k : Normal range <br> •Above ~300k : Economic slowdown risk",
-          marketImpact:
-            "Rising jobless claims <br> → increasing layoffs <br> → weaker household income <br> → slower consumer spending<br> → pressure on corporate earnings and equities",
-          keyInsight:
-            "A sustained rise in jobless claims often signals weakening economic momentum and rising downside risk for equities.",
-        },
-        IPMAN: {
-          group: "growth",
-          name: "Industrial Production: Manufacturing",
-          definition:
-            "An index tracking the real production output of U.S. manufacturing industries.",
-          interpretation:
-            "• Rising trend: Expanding manufacturing activity<br> • Declining trend: Weakening industrial demand<br>• Sharp contraction: Potential economic slowdown",
-          marketImpact:
-            "Manufacturing output rises <br>→ stronger economic activity <br>→ higher corporate revenues <br>→ supportive for equity markets",
-          keyInsight:
-            "Manufacturing activity is highly cyclical and often weakens ahead of broader economic slowdowns.",
-        },
-        HOUST: {
-          group: "growth",
-          name: "Housing Starts",
-          definition:
-            "A measure of new residential construction activity in the U.S.",
-          interpretation:
-            "• Rising trend: Strong housing demand and economic expansion<br> • Stable level: Balanced housing market<br> • Declining trend: Weak housing demand<br> • Sharp drop: Potential economic slowdown",
-          marketImpact:
-            "Housing starts rise <br>→ stronger housing demand <br>→ higher construction activity <br>→ stronger employment and consumer spending <br>→ supportive for corporate earnings and equities",
-          keyInsight:
-            "Housing activity is highly sensitive to interest rates and often turns down before broader economic slowdowns.",
-        },
-        RSXFS: {
-          group: "growth",
-          name: "Retail Sales",
-          definition: "Consumer spending pace.",
-          interpretation: "70% of US Economy.",
-          marketImpact: "Key driver for corporate profits",
-          keyInsight: "Adjust for inflation to see real volume.",
-        },
-        T10Y2Y: {
-          group: "stress",
-          name: "10-Year Minus 2-Year Treasury",
-          definition: "Yield Curve Slope",
-          interpretation: "Inversion signals recession risk.",
-          marketImpact: "Bank lending margins",
-          keyInsight: "Risk peaks when curve 'un-inverts'.",
-        },
-        BAMLH0A0HYM2: {
-          group: "stress",
-          name: "High Yield Spread",
-          definition: "Credit risk premium.",
-          interpretation: "Rising: Increasing default risk.",
-          marketImpact: "Risk-on/Risk-off gauge",
-          keyInsight: "Panic indicator during credit crunches.",
-        },
-        NFCI: {
-          group: "stress",
-          name: "Financial Conditions Index",
-          definition: "Stress in financial systems.",
-          interpretation: "Above 0: Tight conditions.",
-          marketImpact: "Liquidity flow driver",
-          keyInsight: "Monitors overall systemic tightness.",
-        },
-        DGS10: {
-          group: "rates",
-          name: "10-Year Treasury Rate",
-          definition: "Global benchmark rate.",
-          interpretation: "Discount rate for all assets.",
-          marketImpact: "Impacts mortgage and corporate rates",
-          keyInsight: "Key for growth stock valuations.",
-        },
-        DFII10: {
-          group: "rates",
-          name: "10-Year Real Interest Rate",
-          definition: "TIPS Yield (Rate - Inflation)",
-          interpretation: "Actual cost of capital.",
-          marketImpact: "Inverse to Gold and P/E ratios",
-          keyInsight: "Real tightness of monetary policy.",
-        },
-        WALCL: {
-          group: "liquidity",
-          name: "Fed Balance Sheet",
-          definition: "Total Assets held by Fed.",
-          interpretation: "Liquidity injection/drain (QE/QT).",
-          marketImpact: "Market liquidity baseline",
-          keyInsight: "Watch the pace of QT.",
-        },
-        BUSLOANS: {
-          group: "liquidity",
-          name: "C&I Loans",
-          definition: "Commercial and Industrial loans.",
-          interpretation: "Credit availability for firms.",
-          marketImpact: "Real economy fuel",
-          keyInsight: "Credit crunch indicator if declining.",
-        },
-        SP500: {
-          group: "market",
-          name: "S&P 500 Index",
-          definition: "US Large Cap Stocks.",
-          interpretation: "Overall market health.",
-          marketImpact: "Household wealth effect",
-          keyInsight: "Main trend indicator.",
-        },
-        VIXCLS: {
-          group: "market",
-          name: "VIX Index",
-          definition: "Fear Gauge.",
-          interpretation: "Expected volatility.",
-          marketImpact: "Sentiment & Hedging costs",
-          keyInsight: "Extreme highs are often buying ops.",
-        },
-        DTWEXBGS: {
-          group: "market",
-          name: "US Dollar Index",
-          definition: "Relative strength of USD.",
-          interpretation: "Strong USD: Global tightening.",
-          marketImpact: "Corporate earnings & EM flows",
-          keyInsight: "Inverse correlation with Risk Assets.",
-        },
-      };
-
+      let chartInstances = {};
       const themes = {
         growth: "1. GROWTH (경기)",
         stress: "2. FINANCIAL STRESS (금융 스트레스)",
@@ -355,15 +229,43 @@
         liquidity: "4. LIQUIDITY (유동성)",
         market: "5. MARKET INDEX (시장)",
       };
+      /* themes Colors */
+      const categoryColors = {
+        growth: { border: "#2563eb", bg: "rgba(37, 99, 235, 0.05)" }, // 파랑 (경기)
+        stress: { border: "#dc2626", bg: "rgba(220, 38, 38, 0.05)" }, // 빨강 (스트레스)
+        rates: { border: "#7c3aed", bg: "rgba(124, 58, 237, 0.05)" }, // 보라 (금리)
+        liquidity: { border: "#059669", bg: "rgba(5, 150, 105, 0.05)" }, // 녹색 (유동성)
+        market: { border: "#ea580c", bg: "rgba(234, 88, 12, 0.05)" }, // 주황 (시장)
+      };
 
       function initDashboard() {
+        // 1. 상단 요약 카드 생성
+        const topContainer = document.getElementById("top-summary-container");
+        if (typeof dashboardSummary !== "undefined") {
+          Object.keys(dashboardSummary).forEach((key) => {
+            const item = dashboardSummary[key];
+            topContainer.innerHTML += `
+              <div class="summary-card">
+                <h4>${item.icon} ${item.title}</h4>
+                <div class="summary-content">${item.content}</div>
+              </div>`;
+          });
+        }
+
+        // 2. 카테고리 및 지표 박스 생성
         const container = document.getElementById("dashboard-container");
-        Object.keys(themes).forEach((groupKey) => {
+        Object.keys(themes).forEach((group) => {
+          const theme = categoryColors[group] || categoryColors.growth;
+
           container.innerHTML += `
-            <div class="category-section">
-                <div class="category-header" onclick="toggleSection(this)">${themes[groupKey]} <span>▼</span></div>
-                <div class="category-content ${groupKey === "growth" ? "active" : ""}" id="grid-${groupKey}"></div>
-            </div>`;
+          <div class="category-section">
+            <div class="category-header"
+              style="border-left:6px solid ${theme.border}; background:${theme.bg}"
+              onclick="toggleSection(this)">
+              ${themes[group]} <span>▼</span>
+            </div>
+             <div class="category-content active" id="grid-${group}"></div>
+          </div>`;
         });
 
         Object.keys(seriesInfo).forEach((id) => {
@@ -373,65 +275,180 @@
 
           grid.innerHTML += `
             <div class="chartbox">
-                <h3>${info.name}</h3>
-                <div class="value" id="val_${id}">Loading...</div>
-                <div class="canvas-container"><canvas id="chart_${id}"></canvas></div>
-                <div class="info-list">
-                    <div class="info-item"><span class="info-label">1. Definition</span><span class="info-text">${info.definition}</span></div>
-                    <div class="info-item"><span class="info-label">2. Interpretation</span><span class="info-text">${info.interpretation}</span></div>
-                    <div class="info-item"><span class="info-label">3. Market Impact</span><span class="info-text">${info.marketImpact}</span></div>
-                    <div class="info-item"><span class="info-label">4. Key Insight</span><span class="info-text insight-highlight">${info.keyInsight}</span></div>
+              <h3>${info.name}</h3>
+              <div class="range-tabs" id="tabs_${id}"></div>
+              <div class="value" id="val_${id}">Loading...</div>
+                <div class="canvas-container">
+                    <canvas id="chart_${id}"></canvas>
+                    <div class="retry-overlay" id="retry_${id}" onclick="loadSeries('${id}')">
+                        <svg class="retry-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38"/>
+                        </svg>
+                    </div>
+                </div>
+              <div class="info-list">
+                ${info.definition ? `<div class="info-item"><span class="info-label">1. Definition</span><span class="info-text">${info.definition}</span></div>` : ""}
+                ${info.interpretation ? `<div class="info-item"><span class="info-label">2. Interpretation</span><span class="info-text">${info.interpretation}</span></div>` : ""}
+                ${info.marketImpact ? `<div class="info-item"><span class="info-label">3. Market Impact</span><span class="info-text">${info.marketImpact}</span></div>` : ""}
+              ${info.keyInsight ? `<div class="info-item key-insight"><span class="info-label">4. Key Insight</span><span class="info-text insight-highlight">${info.keyInsight}</span></div>` : ""}
                 </div>
             </div>`;
+
+          setTimeout(() => applyTheme(id), 0);
         });
       }
 
       function toggleSection(header) {
-        const content = header.nextElementSibling;
-        const isActive = content.classList.toggle("active");
-        header.querySelector("span").innerText = isActive ? "▼" : "▶";
+        header.nextElementSibling.classList.toggle("active");
       }
 
       async function loadSeries(id) {
-        const url = `https://api.allorigins.win/get?url=${encodeURIComponent(
-          `https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${apiKey}&file_type=json`,
-        )}`;
+        const valElement = document.getElementById("val_" + id);
+        const retryOverlay = document.getElementById("retry_" + id);
+        retryOverlay.style.display = "none";
+        valElement.innerText = "Loading...";
+
+        // 🟢 JS 파일에 정의된 apiKey를 사용합니다.
+        const url = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${apiKey}&file_type=json`)}`;
+
         try {
           const res = await fetch(url);
           const data = await res.json();
           const json = JSON.parse(data.contents);
-          const obs = json.observations.filter((o) => o.value !== ".");
-          const recentData = obs.slice(-150);
-          masterData[id] = recentData.map((o) => ({
-            date: o.date,
-            value: parseFloat(o.value),
-          }));
-          renderChart(id);
+          const obs = json.observations
+            .filter((o) => o.value !== ".")
+            .map((o) => ({ date: o.date, value: parseFloat(o.value) }));
+
+          masterData[id] = obs;
+          createRangeButtons(id);
+          updateChartRange(id, "MAX");
         } catch (e) {
-          document.getElementById("val_" + id).innerText = "Error";
+          valElement.innerText = "Error";
+          retryOverlay.style.display = "flex";
+
+          applyTheme(id);
         }
       }
 
-      function renderChart(id) {
-        const data = masterData[id];
+      function createRangeButtons(id) {
+        const obs = masterData[id];
+        const diffYears =
+          (new Date(obs[obs.length - 1].date) - new Date(obs[0].date)) /
+          (1000 * 60 * 60 * 24 * 365);
+        const tabContainer = document.getElementById(`tabs_${id}`);
+        const ranges = [
+          { l: "1Y", v: 1 },
+          { l: "5Y", v: 5 },
+          { l: "10Y", v: 10 },
+          { l: "MAX", v: 999 },
+        ];
+
+        tabContainer.innerHTML = "";
+        ranges.forEach((r) => {
+          if (r.v === 999 || diffYears >= r.v) {
+            const btn = document.createElement("button");
+            btn.className = "range-btn" + (r.l === "MAX" ? " active" : "");
+            btn.innerText = r.l;
+            btn.onclick = () => {
+              tabContainer
+                .querySelectorAll(".range-btn")
+                .forEach((b) => b.classList.remove("active"));
+              btn.classList.add("active");
+              updateChartRange(id, r.l);
+            };
+            tabContainer.appendChild(btn);
+          }
+        });
+      }
+
+      function updateChartRange(id, label) {
+        const full = masterData[id];
+        let filtered = full;
+        if (label !== "MAX") {
+          const years = parseInt(label);
+          const cutoff = new Date(full[full.length - 1].date);
+          cutoff.setFullYear(cutoff.getFullYear() - years);
+          filtered = full.filter((d) => new Date(d.date) >= cutoff);
+        }
+        renderChart(id, filtered);
+      }
+      function applyTheme(id) {
+        const info = seriesInfo[id];
+        const theme = categoryColors[info.group] || categoryColors.growth;
+
+        const box = document.querySelector(`#val_${id}`).closest(".chartbox");
+
+        /* 타이틀 */
+        const title = box.querySelector("h3");
+        if (title) title.style.color = theme.border;
+
+        /* 값 */
+        const valEl = document.getElementById(`val_${id}`);
+        if (valEl) valEl.style.color = theme.border;
+
+        /* Key Insight */
+
+        const insightBox = box.querySelector(".key-insight");
+
+        if (insightBox) {
+          insightBox.style.background = theme.bg;
+          insightBox.style.borderLeft = `3px solid ${theme.border}`;
+
+          const text = insightBox.querySelector(".insight-highlight");
+          if (text) text.style.color = theme.border;
+        }
+      }
+      function renderChart(id, data) {
+        applyTheme(id);
+        const info = seriesInfo[id];
+        const theme = categoryColors[info.group] || categoryColors.growth;
+
+        const box = document.querySelector(`#val_${id}`).closest(".chartbox");
+
+        /* 타이틀 색 */
+        box.querySelector("h3").style.color = theme.border;
+
+        /* 현재값 */
         const latest = data[data.length - 1].value;
-        document.getElementById(`val_${id}`).innerText = latest.toLocaleString(
-          undefined,
-          { minimumFractionDigits: 2 },
-        );
+        const valEl = document.getElementById(`val_${id}`);
+
+        valEl.innerText = latest.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+        });
+
+        valEl.style.color = theme.border;
+
+        /* Key Insight 스타일 */
+
+        const insightBox = box.querySelector(".key-insight");
+
+        if (insightBox) {
+          insightBox.style.background = theme.bg;
+          insightBox.style.borderLeft = `3px solid ${theme.border}`;
+
+          const text = insightBox.querySelector(".insight-highlight");
+
+          if (text) text.style.color = theme.border;
+        }
+
+        /* 차트 */
+
         const ctx = document.getElementById(`chart_${id}`).getContext("2d");
-        new Chart(ctx, {
+
+        if (chartInstances[id]) chartInstances[id].destroy();
+
+        chartInstances[id] = new Chart(ctx, {
           type: "line",
           data: {
             labels: data.map((d) => d.date),
             datasets: [
               {
                 data: data.map((d) => d.value),
-                borderColor: "#2563eb",
-                borderWidth: 2,
+                borderColor: theme.border,
+                borderWidth: 1.5,
                 pointRadius: 0,
                 fill: true,
-                backgroundColor: "rgba(37, 99, 235, 0.05)",
+                backgroundColor: theme.bg,
                 tension: 0.1,
               },
             ],
@@ -441,18 +458,28 @@
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-              x: { display: false },
-              y: { position: "right", ticks: { font: { size: 10 } } },
+              x: {
+                ticks: {
+                  maxTicksLimit: 6,
+                  callback: function (v, i) {
+                    return data[i].date.split("-")[0];
+                  },
+                },
+              },
+              y: {
+                position: "right",
+                grid: { color: "#f1f5f9" },
+                ticks: { font: { size: 10 } },
+              },
             },
           },
         });
       }
-
       window.onload = () => {
         initDashboard();
-        Object.keys(seriesInfo).forEach((id, i) => {
-          setTimeout(() => loadSeries(id), i * 550);
-        });
+        Object.keys(seriesInfo).forEach((id, i) =>
+          setTimeout(() => loadSeries(id), i * 350),
+        );
       };
     </script>
   </body>
